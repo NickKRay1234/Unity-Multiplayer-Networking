@@ -2,12 +2,17 @@ using System;
 using Unity.Netcode;
 using UnityEngine;
 
-public class Player : NetworkBehaviour, IKitchenObjectParent {
+public class Player : NetworkBehaviour, IKitchenObjectParent
+{
 
+    public static event EventHandler OnAnyPlayerSpawned;
+    public static event EventHandler OnAnyPickedSomething;
+    public static Player LocalInstance { get; private set; }
 
-    //public static Player Instance { get; private set; }
-
-
+    public static void ResetStaticData()
+    {
+        OnAnyPlayerSpawned = null;
+    }
 
     public event EventHandler OnPickedSomething;
     public event EventHandler<OnSelectedCounterChangedEventArgs> OnSelectedCounterChanged;
@@ -27,12 +32,9 @@ public class Player : NetworkBehaviour, IKitchenObjectParent {
     private KitchenObject kitchenObject;
 
 
-    // private void Awake() {
-    //     if (Instance != null) {
-    //         Debug.LogError("There is more than one Player instance");
-    //     }
-    //     Instance = this;
-    // }
+    private void Awake() {
+        //LocalInstance = this;
+    }
 
     private void Start() {
         GameInput.Instance.OnInteractAction += GameInput_OnInteractAction;
@@ -45,6 +47,12 @@ public class Player : NetworkBehaviour, IKitchenObjectParent {
         if (selectedCounter != null) {
             selectedCounter.InteractAlternate(this);
         }
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsOwner) LocalInstance = this;
+        OnAnyPlayerSpawned?.Invoke(this, EventArgs.Empty);
     }
 
     private void GameInput_OnInteractAction(object sender, System.EventArgs e) {
@@ -214,6 +222,7 @@ public class Player : NetworkBehaviour, IKitchenObjectParent {
 
         if (kitchenObject != null) {
             OnPickedSomething?.Invoke(this, EventArgs.Empty);
+            OnAnyPickedSomething?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -228,5 +237,4 @@ public class Player : NetworkBehaviour, IKitchenObjectParent {
     public bool HasKitchenObject() {
         return kitchenObject != null;
     }
-
 }
