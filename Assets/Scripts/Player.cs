@@ -58,7 +58,8 @@ public class Player : NetworkBehaviour, IKitchenObjectParent {
     private void Update()
     {
         if (!IsOwner) return;
-        HandleMovementServerAuth();
+        //HandleMovementServerAuth();
+        HandleMovement();
         HandleInteractions();
     }
 
@@ -141,6 +142,12 @@ public class Player : NetworkBehaviour, IKitchenObjectParent {
                 }
             }
         }
+        
+        if (canMove) transform.position += moveDir * moveDistance;
+        isWalking = moveDir != Vector3.zero;
+
+        float rotateSpeed = 10f;
+        transform.forward = Vector3.Slerp(transform.forward, moveDir, Time.deltaTime * rotateSpeed);
     }
 
     private void HandleMovement() {
@@ -179,7 +186,8 @@ public class Player : NetworkBehaviour, IKitchenObjectParent {
             }
         }
 
-        if (canMove) {
+        if (canMove)
+        {
             transform.position += moveDir * moveDistance;
         }
 
